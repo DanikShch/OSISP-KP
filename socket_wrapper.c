@@ -16,6 +16,7 @@ int Socket(int domain, int type, int protocol) {
     return server;
 }
 
+
 void Bind(int socket, struct sockaddr_in *adr, socklen_t socklen) {
     int res = bind(socket, (struct sockaddr *) adr, socklen);
     if (res == -1) {
