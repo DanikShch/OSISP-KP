@@ -5,7 +5,6 @@
 #include <libgen.h>
 #include <string.h>
 #include <stdlib.h>
-#include <pthread.h>
 
 #define BUFFER_SIZE 1024
 
@@ -52,7 +51,6 @@ void inputFileName(char* fileName) {
         if (length > 0 && fileName[length - 1] == '\n') {
             fileName[length - 1] = '\0';
         }
-
         if (access(fileName,R_OK) != -1) {
             break;
         } else {
@@ -60,7 +58,6 @@ void inputFileName(char* fileName) {
         }
     }
 }
-
 
 void sendMessage(char *message, int fd) {
     char buffer[BUFFER_SIZE];

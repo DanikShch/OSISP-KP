@@ -43,10 +43,10 @@ int main() {
     pthread_t thread[THREADS_COUNT];
     int threads[THREADS_COUNT] = {0};
     int *fd[THREADS_COUNT], server;
-    int choice;
+    int choice = -1;
     int port = 53535;
     int serverOpened = 0, connected = 0;
-    char *ip = "127.0.0.1";
+    char ip[16];
     for (int i = 0; i < THREADS_COUNT; i++) {
         fd[i] = (int*)malloc(sizeof(int));
     }
@@ -60,25 +60,39 @@ int main() {
         printf("6. Закрыть соединение\n");
         printf("7. Закрыть сервер\n");
         printf("8. Выход\n\n");
-        printf("Введите номер соответствующей функции, которую вы хотите выполнить: ");
+        printf("Введите номер соответствующей функции, которую вы хотите выполнить:\n");
         scanf("%d", &choice);
-
         switch (choice) {
             case 1:
-                openServer(port, &server, &adr, THREADS_COUNT);
-                serverOpened = 1;
-                printf("Сервер запущен\n");
+                if(!serverOpened) {
+                    openServer(port, &server, &adr, THREADS_COUNT);
+                    serverOpened = 1;
+                    print_local_ip(port);
+                } else {
+                    printf("Ошибка: Сервер уже запущен\n");
+                    print_local_ip(port);
+                }
                 break;
             case 2:
-                connectToServer(ip, port, fd, THREADS_COUNT);
-                connected = 1;
-                printf("Соединение с сервером установлено\n");
+                if(!connected) {
+                    printf("Введите IP сервера\n");
+                    scanf("%s",ip);
+                    connectToServer(ip, port, fd, THREADS_COUNT);
+                    connected = 1;
+                    printf("Соединение с сервером установлено\n");
+                } else {
+                    printf("Ошибка: Соединение с сервером уже установлено\n");
+                }
                 break;
             case 3:
                 if(serverOpened) {
-                    acceptConnection(&server, fd, &adr, THREADS_COUNT);
-                    connected = 1;
-                    printf("Принято подключение клиента\n");
+                    if(!connected) {
+                        acceptConnection(&server, fd, &adr, THREADS_COUNT);
+                        connected = 1;
+                        printf("Принято подключение клиента\n");
+                    } else {
+                        printf("Ошибка: Подключение клиента уже принято\n");
+                    }
                 } else {
                     printf("Ошибка: Сервер не запущен\n");
                 }
@@ -97,7 +111,7 @@ int main() {
                     args.thread = &(threads[index]);
                     pthread_create(&(thread[index]), NULL, sendFile, &args);
                 } else {
-                    printf("Not connected\n");
+                    printf("Ошибка: Соединение не установлено\n");
                 }
                 break;
             case 5:
@@ -114,20 +128,30 @@ int main() {
                     args.thread = &(threads[index]);
                     pthread_create(&(thread[index]), NULL, recvFile, &args);
                 } else {
-                    printf("Not connected\n");
+                    printf("Ошибка: Соединение не установлено\n");
                 }
                 break;
             case 6:
-                for (int i = 0; i < THREADS_COUNT; ++i) {
-                    close((*fd)[i]);
+                if (connected) {
+                    for (int i = 0; i < THREADS_COUNT; i++) {
+                        close((*fd)[i]);
+                    }
+                    connected = 0;
                 }
                 printf("Соединение закрыто\n");
                 break;
+
             case 7:
-                for (int i = 0; i < THREADS_COUNT; ++i) {
-                    close((*fd)[i]);
+                if(connected) {
+                    for (int i = 0; i < THREADS_COUNT; ++i) {
+                        close((*fd)[i]);
+                    }
                 }
-                close(server);
+                if(serverOpened) {
+                    close(server);
+                }
+                connected = 0;
+                serverOpened = 0;
                 printf("Сервер выключен\n");
                 break;
             case 8:
@@ -135,6 +159,8 @@ int main() {
                     close((*fd)[i]);
                 }
                 close(server);
+                connected = 0;
+                serverOpened = 0;
                 printf("Выход...\n");
                 break;
             default:

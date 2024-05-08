@@ -1,7 +1,6 @@
 #include "socket_wrapper.h"
 #include "file_transfer.h"
 #include <unistd.h>
-#define SIZE 100
 
 void connectToServer(char *ip, int port, int * fd[], int count) {
 
