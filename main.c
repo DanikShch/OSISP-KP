@@ -75,8 +75,6 @@ int main() {
                 break;
             case 2:
                 if(!connected) {
-                    printf("Введите IP сервера\n");
-                    scanf("%s",ip);
                     connectToServer(ip, port, fd, THREADS_COUNT);
                     connected = 1;
                     printf("Соединение с сервером установлено\n");
